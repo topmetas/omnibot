@@ -7,7 +7,7 @@ pnpm-lock.yaml
 # Ambiente
 .env
 .env.*
-!.env.example
+
 
 # Banco
 data/
@@ -17,7 +17,6 @@ data/
 # Ollama / IA local
 .ollama/
 ollama/
-models/
 
 # Logs
 logs/
