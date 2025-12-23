@@ -1,0 +1,32 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Banco
+data/
+*.sqlite
+*.db
+
+# Ollama / IA local
+.ollama/
+ollama/
+models/
+
+# Logs
+logs/
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/

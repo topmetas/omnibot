@@ -1,0 +1,16 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<canvas id="usage"></canvas>
+
+<script>
+  new Chart(document.getElementById("usage"), {
+    type: "line",
+    data: {
+      labels: ["Seg", "Ter", "Qua"],
+      datasets: [{
+        label: "Mensagens",
+        data: [10, 25, 40]
+      }]
+    }
+  });
+</script>

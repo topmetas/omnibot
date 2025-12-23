@@ -1,0 +1,29 @@
+<h2>Painel Admin</h2>
+
+<form id="create">
+  <input placeholder="Nome" id="name" />
+  <input placeholder="Domínio" id="domain" />
+  <input placeholder="Nicho" id="niche" />
+  <button>Criar Cliente</button>
+</form>
+
+<pre id="result"></pre>
+
+<script>
+  document.getElementById("create").onsubmit = async e => {
+    e.preventDefault();
+
+    const res = await fetch("/api/admin/client", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name.value,
+        domain: domain.value,
+        niche: niche.value
+      })
+    });
+
+    document.getElementById("result").innerText =
+      JSON.stringify(await res.json(), null, 2);
+  };
+</script>
