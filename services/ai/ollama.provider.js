@@ -1,31 +1,25 @@
 import axios from "axios";
 
-// Função que conversa com o Ollama (LLaMA / Mistral)
-export async function ollamaProvider(message, client) {
-  const prompt = `
-Você é um chatbot profissional treinado com o conteúdo abaixo.
-Use essas informações como base principal para responder.
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 
-=== CONTEÚDO DO SITE ===
-${client.siteContent}
+/**
+ * Provider Local (Ollama)
+ * - NÃO conhece client
+ * - NÃO monta prompt
+ * - SEMPRE retorna padrão
+ */
+export async function ollamaProvider(prompt, options = {}) {
+  const model = options.model || "mistral";
 
-=== CONTEXTO DO NEGÓCIO ===
-Nicho: ${client.niche}
+  const response = await axios.post(`${OLLAMA_URL}/api/generate`, {
+    model,
+    prompt,
+    stream: false,
+  });
 
-=== PERGUNTA DO USUÁRIO ===
-${message}
-
-Responda de forma clara, objetiva e profissional.
-`;
-
-  const response = await axios.post(
-    "http://localhost:11434/api/generate",
-    {
-      model: client.model || "mistral",
-      prompt,
-      stream: false
-    }
-  );
-
-  return response.data.response;
+  return {
+    text: response.data.response,
+    tokens: response.data.eval_count || 0,
+    cost: 0,
+  };
 }

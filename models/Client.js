@@ -3,71 +3,93 @@ import crypto from "crypto";
 
 const ClientSchema = new mongoose.Schema(
   {
-    name: String,
-    domain: String,
-    niche: String,
+    // 🏷️ Dados básicos
+    name: { type: String, required: true },
+    email: { type: String },
+    domain: { type: String },
+    niche: { type: String },
 
     // 🔑 API Key única por cliente
     apiKey: {
       type: String,
       unique: true,
-      default: () => crypto.randomBytes(24).toString("hex")
+      index: true,
+      default: () => crypto.randomBytes(24).toString("hex"),
     },
 
     // 💼 Plano do cliente
     plan: {
       type: String,
       enum: ["free", "eco", "pro"],
-      default: "free"
+      default: "free",
     },
 
     // 🤖 Provedor de IA
     aiProvider: {
       type: String,
       enum: ["local", "openai"],
-      default: "local"
+      default: "local",
     },
 
-    // 📊 Limite mensal
-    monthlyLimit: {
-      type: Number,
-      default: 100
-    },
-
-    usage: {
-      type: Number,
-      default: 0
-    },
-
-    // 🌍 Idioma do cliente (multi-idioma)
+    // 🌍 Idioma
     language: {
       type: String,
-      default: "pt-BR"
+      default: "pt-BR",
     },
 
-    // 🎨 Branding / White-label
+    // 🎨 White-label / Branding
     brand: {
       name: {
         type: String,
-        default: "Chatbot IA"
+        default: "Chatbot IA",
       },
-      logoUrl: {
-        type: String
-      },
+      logoUrl: String,
       primaryColor: {
         type: String,
-        default: "#4f46e5"
+        default: "#4f46e5",
       },
-      domainWhiteLabel: {
-        type: String
-      }
-    }
+      domain: String, // domínio principal
+      domainWhiteLabel: String,
+      removeBranding: {
+        type: Boolean,
+        default: false,
+      },
+    },
+
+    // 📊 Limites do plano
+    limits: {
+      monthlyMessages: {
+        type: Number,
+        default: 100,
+      },
+      monthlyTokens: {
+        type: Number,
+        default: 0,
+      },
+    },
+
+    // 📈 Uso atual
+    usage: {
+      messages: {
+        type: Number,
+        default: 0,
+      },
+      tokens: {
+        type: Number,
+        default: 0,
+      },
+    },
+
+    // 🕒 Controle
+    lastResetAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
 export default mongoose.model("Client", ClientSchema);
-
 

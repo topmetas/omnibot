@@ -1,48 +1,75 @@
 import { openAIProvider } from "./openai.provider.js";
 import { ollamaProvider } from "./ollama.provider.js";
 import { semanticSearch } from "../embeddings/semantic.search.js";
+import { registerUsage } from "../usage/usage.service.js";
 
 /**
- * Função central que decide QUAL IA usar
+ * ENGINE CENTRAL DE IA
+ * - RAG
+ * - Controle de plano
+ * - Billing / Usage
+ * - Fallback automático
  */
-export async function generateResponse(client, message) {
+export async function generateResponse(client, message, source = "api") {
   let prompt = "";
 
   try {
-    // 1️⃣ Busca semântica (RAG)
+    // 🔎 RAG / Busca semântica
     const context = await semanticSearch(client._id, message);
 
-    // 2️⃣ Prompt de sistema por idioma e nicho
-    const systemPrompt = `
-Você é um chatbot profissional.
+    // 🧠 Prompt padrão SaaS
+    prompt = `
+Você é um assistente profissional.
 Responda sempre em ${client.language || "português"}.
 Nicho do cliente: ${client.niche || "geral"}.
-`;
 
-    // 3️⃣ Prompt completo
-    prompt = `
-${systemPrompt}
-
-Use o contexto abaixo para responder:
-
+Contexto:
 ${context || "Nenhum contexto encontrado"}
 
 Pergunta do usuário:
 ${message}
 `;
 
-    // 4️⃣ Decide qual IA usar
-    if (client.aiProvider === "local") {
-      return await ollamaProvider(prompt, client);
+    // 🔐 Controle de plano
+    const provider =
+      client.aiProvider === "openai" && client.plan !== "free"
+        ? "openai"
+        : "local";
+
+    let response;
+
+    // 🤖 Decide IA
+    if (provider === "openai") {
+      response = await openAIProvider(prompt, client);
+    } else {
+      response = await ollamaProvider(prompt, client);
     }
 
-    // 5️⃣ IA Premium (OpenAI)
-    return await openAIProvider(prompt, client);
+    // 📊 Registro de uso
+    await registerUsage({
+      client,
+      tokens: response.tokens || 0,
+      cost: response.cost || 0,
+      provider,
+      source,
+    });
+
+    return response.text;
 
   } catch (error) {
-    // 6️⃣ Fallback automático
-    console.error("❌ Erro na IA premium. Usando IA local:", error.message);
-    return await ollamaProvider(prompt || message, client);
+    console.error("❌ Erro IA premium → fallback local:", error.message);
+
+    // 🔁 Fallback local
+    const fallback = await ollamaProvider(prompt || message, client);
+
+    await registerUsage({
+      client,
+      tokens: fallback.tokens || 0,
+      cost: 0,
+      provider: "local",
+      source,
+    });
+
+    return fallback.text;
   }
 }
-

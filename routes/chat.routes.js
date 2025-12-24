@@ -1,14 +1,22 @@
-import express from "express";
-import { chat } from "../services/chat.service.js";
+import { Router } from "express";
+import { authClient } from "../middlewares/authClient.js";
+import { rateLimitSaaS } from "../middlewares/rateLimitSaaS.js";
+import { usageGuard } from "../middlewares/usageGuard.js";
+import { chatController } from "../controllers/chat.controller.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/", async (req, res) => {
-  const { message } = req.body;
-
-  const reply = await chat(null, message);
-
-  res.json({ reply });
-});
+/**
+ * POST /api/chat
+ * Corpo: { message: string }
+ * Header: x-api-key
+ */
+router.post(
+  "/",
+  authClient,       // 🔐 identifica cliente
+  rateLimitSaaS,    // ⚡ limite por tempo (SaaS)
+  usageGuard,       // 📊 limite mensal
+  chatController    // 🤖 IA
+);
 
 export default router;
