@@ -1,4 +1,4 @@
-import { generateResponse } from "../ai/ai.engine.js";
+import { generateResponse } from "../services/ai/ai.engine.js";
 import logger from "../utils/logger.js";
 
 export async function chatController(req, res) {

@@ -4,10 +4,18 @@ import crypto from "crypto";
 const ClientSchema = new mongoose.Schema(
   {
     // 🏷️ Dados básicos
-    name: { type: String, required: true },
-    email: { type: String },
-    domain: { type: String },
-    niche: { type: String },
+    name: {
+      type: String,
+      required: true,
+    },
+
+    email: {
+      type: String,
+      index: true,
+    },
+
+    domain: String,
+    niche: String,
 
     // 🔑 API Key única por cliente
     apiKey: {
@@ -17,11 +25,29 @@ const ClientSchema = new mongoose.Schema(
       default: () => crypto.randomBytes(24).toString("hex"),
     },
 
-    // 💼 Plano do cliente
+    apiKeyLastResetAt: Date,
+
+    // 💼 Plano
     plan: {
       type: String,
       enum: ["free", "eco", "pro"],
       default: "free",
+    },
+
+    planActivatedAt: Date,
+
+    // 💳 Assinatura (Mercado Pago / Stripe)
+    subscription: {
+      id: String, // ← substitui subscriptionId
+      status: {
+        type: String,
+        enum: ["pending", "active", "cancelled"],
+        default: "pending",
+      }, // ← substitui subscriptionStatus
+      provider: {
+        type: String,
+        enum: ["mercadopago", "stripe"],
+      },
     },
 
     // 🤖 Provedor de IA
@@ -48,7 +74,7 @@ const ClientSchema = new mongoose.Schema(
         type: String,
         default: "#4f46e5",
       },
-      domain: String, // domínio principal
+      domain: String,
       domainWhiteLabel: String,
       removeBranding: {
         type: Boolean,
@@ -56,7 +82,7 @@ const ClientSchema = new mongoose.Schema(
       },
     },
 
-    // 📊 Limites do plano
+    // 📊 Limites do plano (configurados por plano)
     limits: {
       monthlyMessages: {
         type: Number,
@@ -65,6 +91,14 @@ const ClientSchema = new mongoose.Schema(
       monthlyTokens: {
         type: Number,
         default: 0,
+      },
+      bots: {
+        type: Number,
+        default: 1, // ← veio do schema antigo
+      },
+      rateLimitPerMinute: {
+        type: Number,
+        default: 30,
       },
     },
 
@@ -78,12 +112,22 @@ const ClientSchema = new mongoose.Schema(
         type: Number,
         default: 0,
       },
+      bots: {
+        type: Number,
+        default: 0, // ← veio do schema antigo
+      },
     },
 
-    // 🕒 Controle
+    // 🕒 Controle de ciclo
     lastResetAt: {
       type: Date,
       default: Date.now,
+    },
+
+    // 🧾 Auditoria
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -92,4 +136,3 @@ const ClientSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("Client", ClientSchema);
-

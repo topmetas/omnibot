@@ -1,7 +1,7 @@
 import { openAIProvider } from "./openai.provider.js";
 import { ollamaProvider } from "./ollama.provider.js";
 import { semanticSearch } from "../embeddings/semantic.search.js";
-import { registerUsage } from "../usage/usage.service.js";
+import { registerUsage } from "../usage/usage.services.js";
 
 /**
  * ENGINE CENTRAL DE IA

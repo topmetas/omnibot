@@ -1,18 +1,24 @@
 import { Router } from "express";
-import { authClient } from "../middlewares/authClient.js";
-import {
-  checkoutController,
-  successController,
-  failureController,
-} from "./billing.controller.js";
+import { gerarAssinatura } from "../billing/billing.service.js";
 
 const router = Router();
 
-// 🔐 Criação do checkout
-router.post("/checkout", authClient, checkoutController);
+router.post("/subscribe", async (req, res) => {
+  try {
+    const { email, plan, clientId } = req.body;
 
-// ✅ Retorno Mercado Pago
-router.get("/success", successController);
-router.get("/failure", failureController);
+    const result = await gerarAssinatura({
+      email,
+      plan,
+      clientId,
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+});
 
 export default router;

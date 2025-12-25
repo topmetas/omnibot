@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
+import "./jobs/payment.retry.job.js";
 
 // 🔌 Banco de dados
 import connectDB from "./config/database.js";
@@ -20,8 +21,8 @@ import billingRoutes from "./billing/billing.routes.js";
 import "./jobs/usage.reset.job.js";
 
 // 🛡️ Middlewares
-import securityMiddleware from "./middlewares/security.middleware.js";
-import limiter from "./middlewares/rateLimiter.js";
+import securityMiddleware from "./middlewares/security.js";
+import limiter from "./middlewares/rateLimit.js";
 
 // 🧠 Logger
 import logger from "./utils/logger.js";
