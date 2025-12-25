@@ -1,14 +1,29 @@
 import { mpClient } from "../config/mercadoPago.js";
 import { PLANS } from "../config/plans.config.js";
+import { createSubscriptionPayPal } from "./paypal.service.js";
 
 /**
- * 🔔 GERAR ASSINATURA
+ * 🔔 GERAR ASSINATURA (MULTI-GATEWAY)
  */
-export async function gerarAssinatura({ client, plan }) {
+export async function gerarAssinatura(data) {
+  const { gateway } = data;
+
+  if (gateway === "paypal") {
+    return createSubscriptionPayPal(data);
+  }
+
+  // Default: Mercado Pago
+  return createSubscriptionMercadoPago(data);
+}
+
+/**
+ * 🔔 GERAR ASSINATURA - MERCADO PAGO
+ */
+async function createSubscriptionMercadoPago({ client, plan }) {
   const plano = PLANS[plan];
 
   if (!plano) {
-    throw new Error("Plano inválido");
+    throw new Error("Invalid plan");
   }
 
   const response = await fetch("https://api.mercadopago.com/preapproval", {
@@ -18,7 +33,7 @@ export async function gerarAssinatura({ client, plan }) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      reason: `Plano OmniBot ${plan.toUpperCase()}`,
+      reason: `OmniBot Plan ${plan.toUpperCase()}`,
       payer_email: client.email,
       auto_recurring: {
         frequency: 1,
@@ -38,7 +53,7 @@ export async function gerarAssinatura({ client, plan }) {
   const subscription = await response.json();
 
   if (!response.ok) {
-    throw new Error(subscription.message || "Erro ao criar assinatura");
+    throw new Error(subscription.message || "Failed to create subscription");
   }
 
   client.plan = plan;
@@ -54,15 +69,21 @@ export async function gerarAssinatura({ client, plan }) {
   return {
     init_point: subscription.init_point,
     subscriptionId: subscription.id,
+    provider: "mercadopago",
   };
 }
 
 /**
- * ❌ CANCELAR ASSINATURA
+ * ❌ CANCEL SUBSCRIPTION (MERCADO PAGO)
  */
 export async function cancelarAssinatura(client) {
   if (!client.subscription?.id) {
-    throw new Error("Cliente não possui assinatura ativa");
+    throw new Error("Client does not have an active subscription");
+  }
+
+  if (client.subscription.provider === "paypal") {
+    // optional: delegate to PayPal cancel service
+    throw new Error("PayPal cancel not implemented yet");
   }
 
   const response = await fetch(
@@ -78,7 +99,7 @@ export async function cancelarAssinatura(client) {
   );
 
   if (!response.ok) {
-    throw new Error("Erro ao cancelar assinatura");
+    throw new Error("Failed to cancel subscription");
   }
 
   client.plan = "free";

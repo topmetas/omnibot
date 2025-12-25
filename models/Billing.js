@@ -11,8 +11,9 @@ const BillingSchema = new mongoose.Schema(
 
     gateway: {
       type: String,
-      enum: ["mercadopago", "stripe"],
+      enum: ["mercadopago", "paypal"], // ✅ Stripe removido
       required: true,
+      index: true,
     },
 
     amount: {
@@ -23,6 +24,7 @@ const BillingSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
+      index: true,
     },
 
     referenceId: {
@@ -31,7 +33,7 @@ const BillingSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // ✅ createdAt + updatedAt automáticos
+    timestamps: true,
   }
 );
 

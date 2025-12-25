@@ -16,6 +16,8 @@ import statsRoutes from "./routes/stats.routes.js";
 import configRoutes from "./routes/config.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import billingRoutes from "./billing/billing.routes.js";
+import { startWhatsApp } from "./services/whatsapp.service.js";
+
 
 // 🔁 Jobs / CRON
 import "./jobs/usage.reset.job.js";
@@ -57,6 +59,9 @@ app.get("/", (req, res) => {
     uptime: process.uptime(),
   });
 });
+
+// 🔔 Inicia WhatsApp
+startWhatsApp();
 
 // 🚀 Start server
 const PORT = process.env.PORT || 3000;

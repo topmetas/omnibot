@@ -1,7 +1,5 @@
 import { Router } from "express";
 import mp from "../config/mercadoPago.js";
-import Client from "../models/Client.js";
-import Billing from "../models/Billing.js";
 import { authJWT } from "../middlewares/authJWT.js";
 import { getBillingHistory } from "../controllers/billing.controller.js";
 
@@ -37,22 +35,23 @@ router.post("/subscribe", authJWT, async (req, res) => {
       back_url: `${process.env.FRONTEND_URL}/billing/success`,
     });
 
-    // salva dados básicos da assinatura no cliente
     client.subscription = {
       id: subscription.id,
       status: "pending",
       provider: "mercadopago",
     };
+
     client.plan = plan;
     client.planActivatedAt = new Date();
 
     await client.save();
 
     res.json({
+      success: true,
       checkoutUrl: subscription.init_point,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error("Erro ao criar assinatura:", error);
     res.status(500).json({ error: "Erro ao criar assinatura" });
   }
 });

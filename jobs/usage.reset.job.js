@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import Client from "../models/Client.js";
+import { checkUsageAndNotifyUpgrade } from "../services/email.service.js";
 
 /**
  * 🔄 Reset mensal de uso
@@ -9,17 +10,20 @@ cron.schedule("0 0 1 * *", async () => {
   try {
     console.log("🔄 Iniciando reset mensal de uso");
 
-    await Client.updateMany(
-      {},
-      {
-        $set: {
-          "usage.messages": 0,
-          "usage.bots": 0,
-          "usage.tokens": 0,
-          lastResetAt: new Date(),
-        },
-      }
-    );
+    const clients = await Client.find({});
+
+    for (const client of clients) {
+      // 📧 Notifica upgrade se necessário
+      await checkUsageAndNotifyUpgrade(client);
+
+      // 🔄 Reseta uso
+      client.usage.messages = 0;
+      client.usage.bots = 0;
+      client.usage.tokens = 0;
+      client.lastResetAt = new Date();
+
+      await client.save();
+    }
 
     console.log("✅ Uso mensal resetado com sucesso");
   } catch (error) {
